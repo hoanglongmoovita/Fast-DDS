@@ -406,6 +406,7 @@ protected:
             const fastrtps::rtps::GUID_t& )
     {
     }
+
 };
 
 #endif // FASTDDS_STATISTICS
