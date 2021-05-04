@@ -110,6 +110,8 @@ private:
 
     // PDP_PACKETS ancillary
     unsigned long long pdp_counter_ = {};
+    // EDP_PACKETS ancillary
+    unsigned long long edp_counter_ = {};
 
     /*
      * Retrieve the GUID_t from derived class
@@ -309,6 +311,14 @@ protected:
         }
     }
 
+    /*
+     * Report EDP message exchange.
+     * We filtered the non-edp traffic here to minimize presence of statistics code in endpoints implementation.
+     * @param sender, sender GUID_t to filter
+     */
+    void on_edp_packet(
+            const fastrtps::rtps::GUID_t& sender);
+
 public:
 
     /*
@@ -387,6 +397,15 @@ protected:
     {
     }
 
+    /*
+     * Report EDP message exchange.
+     * We filtered the non-edp traffic here to minimize presence of statistics code in endpoints implementation.
+     * @param sender, sender GUID_t to filter
+     */
+    inline void on_edp_packet(
+            const fastrtps::rtps::GUID_t& )
+    {
+    }
 };
 
 #endif // FASTDDS_STATISTICS
