@@ -84,6 +84,9 @@ struct MockListener : IListener
             case PDP_PACKETS:
                 on_pdp_packets(data.entity_count());
                 break;
+            case EDP_PACKETS:
+                on_edp_packets(data.entity_count());
+                break;
             default:
                 break;
         }
@@ -98,6 +101,7 @@ struct MockListener : IListener
     MOCK_METHOD1(on_nackfrag_count, void(const eprosima::fastdds::statistics::EntityCount&));
     MOCK_METHOD1(on_entity_discovery, void(const eprosima::fastdds::statistics::DiscoveryTime&));
     MOCK_METHOD1(on_pdp_packets, void(const eprosima::fastdds::statistics::EntityCount&));
+    MOCK_METHOD1(on_edp_packets, void(const eprosima::fastdds::statistics::EntityCount&));
 };
 
 class RTPSStatisticsTestsImpl
@@ -787,7 +791,7 @@ TEST_F(RTPSStatisticsTests, statistics_rpts_listener_discovery_callbacks)
     // create the listener and set expectations
     auto participant_listener = make_shared<MockListener>();
     ASSERT_TRUE(participant_->add_statistics_listener(participant_listener,
-            EventKind::DISCOVERED_ENTITY | EventKind::PDP_PACKETS));
+            EventKind::DISCOVERED_ENTITY | EventKind::PDP_PACKETS | EventKind::EDP_PACKETS));
 
     // check callbacks on data exchange
     atomic_int callbacks(0);
@@ -799,6 +803,8 @@ TEST_F(RTPSStatisticsTests, statistics_rpts_listener_discovery_callbacks)
     EXPECT_CALL(*participant_listener, on_entity_discovery)
             .Times(AtLeast(5));
     EXPECT_CALL(*participant_listener, on_pdp_packets)
+            .Times(AtLeast(1));
+    EXPECT_CALL(*participant_listener, on_edp_packets)
             .Times(AtLeast(1));
 
     // create local endpoints
