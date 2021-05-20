@@ -445,7 +445,5 @@ compile_commands.json
 # Visual Studio Code
 .vscode
 
-build_aarch64
-build_cross
-build_host
+build_*
 output
