@@ -66,7 +66,7 @@ public:
      * @par Calling example:
      * @snippet fastrtps_example.cpp ex_PublisherWrite
      */
-    bool write(
+    virtual bool write(
             void* sample);
 
     /*!
