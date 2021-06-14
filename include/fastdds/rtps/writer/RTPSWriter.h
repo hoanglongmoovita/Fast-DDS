@@ -34,11 +34,7 @@
 #include <fastrtps/qos/LivelinessLostStatus.h>
 #include <fastrtps/utils/collections/ResourceLimitedVector.hpp>
 
-#ifdef FASTDDS_STATISTICS
 #include <fastdds/statistics/rtps/StatisticsCommon.hpp>
-#else
-#include <fastdds/statistics/rtps/StatisticsCommonEmpty.hpp>
-#endif // FASTDDS_STATISTICS
 
 namespace eprosima {
 namespace fastrtps {
@@ -544,7 +540,7 @@ protected:
         return sent_ok;
     }
 
-    static void add_statistics_sent_submessage(
+    void add_statistics_sent_submessage(
             CacheChange_t* change,
             size_t num_locators);
 

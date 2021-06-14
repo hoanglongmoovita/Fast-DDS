@@ -247,12 +247,18 @@ bool StatelessReader::change_received(
             update_last_notified(change->writerGUID, change->sequenceNumber);
             ++total_unread_;
 
+            on_data_notify(change->writerGUID, change->sourceTimestamp);
+
             if (getListener() != nullptr)
             {
                 getListener()->onNewCacheChangeAdded(this, change);
             }
 
             new_notification_cv_.notify_all();
+
+            // statistics callback
+            on_subscribe_throughput(change->serializedPayload.length);
+
             return true;
         }
     }

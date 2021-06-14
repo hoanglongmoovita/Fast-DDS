@@ -24,6 +24,7 @@
 
 #include <fastdds/rtps/common/Guid.h>
 #include <fastdds/rtps/common/SampleIdentity.h>
+#include <fastdds/rtps/common/Time_t.h>
 #include <fastdds/statistics/IListeners.hpp>
 #include <fastrtps/utils/TimedMutex.hpp>
 
@@ -40,6 +41,8 @@ class RTPSMessageGroup;
 
 namespace fastdds {
 namespace statistics {
+
+#ifdef FASTDDS_STATISTICS
 
 // Members are private details
 struct StatisticsAncillary;
@@ -161,11 +164,22 @@ protected:
     void on_heartbeat(
             uint32_t count);
 
-    /// Report that a DATA message is sent
-    void on_data();
+    /**
+     * @brief Report that a DATA / DATA_FRAG message is generated
+     * @param num_destinations number of locators to which the message will be sent
+     */
+    void on_data_generated(
+            size_t num_destinations);
 
-    /// Report that a DATA_FRAG message is sent
-    void on_data_frag();
+    /// Notify listeners of DATA / DATA_FRAG counts
+    void on_data_sent();
+
+    /**
+     * @brief Reports publication throughtput based on last added sample to writer's history
+     * @param payload size of the message sent
+     */
+    void on_publish_throughput(
+            uint32_t payload);
 
     /// Report that a GAP message is sent
     void on_gap();
@@ -188,13 +202,9 @@ class StatisticsReaderImpl
 
     /**
      * Create the auxiliary structure
-     * TODO: enable when a member is added to StatisticsReaderAncillary
      * @return nullptr on failure
      */
-    StatisticsReaderAncillary* get_members() const
-    {
-        return nullptr;
-    }
+    StatisticsReaderAncillary* get_members() const;
 
     /**
      * Retrieve endpoint mutexes from derived class
@@ -218,6 +228,15 @@ protected:
     // TODO: methods for listeners callbacks
 
     /**
+     * @brief Report that a sample has been notified to the user.
+     * @param writer_guid GUID of the writer from where the sample was received.
+     * @param source_timestamp Source timestamp received from the writer for the sample being notified.
+     */
+    void on_data_notify(
+            const fastrtps::rtps::GUID_t& writer_guid,
+            const fastrtps::rtps::Time_t& source_timestamp);
+
+    /**
      * @brief Report that an ACKNACK message is sent
      * @param count current count of ACKNACKs
      */
@@ -230,7 +249,131 @@ protected:
      */
     void on_nackfrag(
             int32_t count);
+
+    /**
+     * @brief Reports subscription throughtput based on last added sample to reader's history
+     * @param payload size of the message received
+     */
+    void on_subscribe_throughput(
+            uint32_t payload);
 };
+
+#else // when FASTDDS_STATISTICS is not defined a dummy implementation is used
+
+class StatisticsWriterImpl
+{
+protected:
+
+    // TODO: methods for listeners callbacks
+
+    /**
+     * @brief Report a change on the number of DATA / DATAFRAG submessages sent for a specific sample.
+     * @param SampleIdentity of the affected sample.
+     * @param Current total number of submessages sent for the affected sample.
+     */
+    inline void on_sample_datas(
+            const fastrtps::rtps::SampleIdentity&,
+            size_t)
+    {
+    }
+
+    /**
+     * @brief Report that a HEARTBEAT message is sent
+     * @param current count of heartbeats
+     */
+    inline void on_heartbeat(
+            uint32_t)
+    {
+    }
+
+    /**
+     * @brief Report that a DATA / DATA_FRAG message is generated
+     * @param number of locators to which the message will be sent
+     */
+    inline void on_data_generated(
+            size_t)
+    {
+    }
+
+    /// Notify listeners of DATA / DATA_FRAG counts
+    inline void on_data_sent()
+    {
+    }
+
+    /**
+     * @brief Reports publication throughtput based on last added sample to writer's history
+     * @param size of the message sent
+     */
+    inline void on_publish_throughput(
+            uint32_t)
+    {
+    }
+
+    /// Report that a GAP message is sent
+    inline void on_gap()
+    {
+    }
+
+    /*
+     * @brief Report that several changes are marked for redelivery
+     * @param number of changes to redeliver
+     */
+    inline void on_resent_data(
+            uint32_t)
+    {
+    }
+
+};
+
+class StatisticsReaderImpl
+{
+    friend class fastrtps::rtps::RTPSMessageGroup;
+
+protected:
+
+    // TODO: methods for listeners callbacks
+
+    /**
+     * @brief Report that a sample has been notified to the user.
+     * @param GUID of the writer from where the sample was received.
+     * @param Source timestamp received from the writer for the sample being notified.
+     */
+    inline void on_data_notify(
+            const fastrtps::rtps::GUID_t&,
+            const fastrtps::rtps::Time_t&)
+    {
+    }
+
+    /**
+     * @brief Report that an ACKNACK message is sent
+     * @param current count of ACKNACKs
+     */
+    inline void on_acknack(
+            int32_t)
+    {
+    }
+
+    /**
+     * @brief Report that a NACKFRAG message is sent
+     * @param current count of NACKFRAGs
+     */
+    inline void on_nackfrag(
+            int32_t)
+    {
+    }
+
+    /**
+     * @brief Reports subscription throughtput based on last added sample to reader's history
+     * @param size of the message received
+     */
+    inline void on_subscribe_throughput(
+            uint32_t)
+    {
+    }
+
+};
+
+#endif // FASTDDS_STATISTICS
 
 } // namespace statistics
 } // namespace fastdds

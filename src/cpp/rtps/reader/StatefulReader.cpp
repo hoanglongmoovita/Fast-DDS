@@ -846,6 +846,9 @@ bool StatefulReader::change_received(
 
         NotifyChanges(prox);
 
+        // statistics callback
+        on_subscribe_throughput(a_change->serializedPayload.length);
+
         return ret;
     }
 
@@ -867,6 +870,8 @@ void StatefulReader::NotifyChanges(
             if (!ch_to_give->isRead)
             {
                 ++total_unread_;
+
+                on_data_notify(ch_to_give->writerGUID, ch_to_give->sourceTimestamp);
 
                 if (getListener() != nullptr)
                 {
@@ -1123,7 +1128,6 @@ void StatefulReader::change_read_by_user(
     {
         // This may not be the change read with highest SN,
         // need to find largest SN to ACK
-        std::vector<CacheChange_t*>::iterator last_read_from_writer;
         for (std::vector<CacheChange_t*>::iterator it = mp_history->changesBegin();
                 it != mp_history->changesEnd(); ++it)
         {
