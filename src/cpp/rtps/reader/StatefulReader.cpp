@@ -31,6 +31,7 @@
 #include <fastdds/rtps/builtin/BuiltinProtocols.h>
 #include <fastdds/rtps/builtin/liveliness/WLP.h>
 #include <fastdds/rtps/writer/LivelinessManager.h>
+#include <fastcdr/exceptions/BadParamException.h>
 
 #include "rtps/RTPSDomainImpl.hpp"
 
@@ -557,12 +558,17 @@ bool StatefulReader::processDataFragMsg(
             // If this is the first time we have received fragments for this change, add it to history
             if (change_created != nullptr)
             {
-                if (!change_received(change_created, pWP))
-                {
+                try {
+                    if (!change_received(change_created, pWP))
+                    {
 
-                    logInfo(RTPS_MSG_IN,
-                            IDSTRING "MessageReceiver not add change " << change_created->sequenceNumber.to64long());
+                        logInfo(RTPS_MSG_IN,
+                                IDSTRING "MessageReceiver not add change " << change_created->sequenceNumber.to64long());
 
+                        releaseCache(change_created);
+                        work_change = nullptr;
+                    }
+                } catch (eprosima::fastcdr::exception::BadParamException& e) {
                     releaseCache(change_created);
                     work_change = nullptr;
                 }
